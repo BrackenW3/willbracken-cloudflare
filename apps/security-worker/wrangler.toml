@@ -1,0 +1,9 @@
+name = "security-txt-worker"
+main = "src/index.ts"
+compatibility_date = "2026-04-09"
+
+[vars]
+CONTACT = "mailto:security@willbracken.com"
+
+[triggers]
+crons = []
