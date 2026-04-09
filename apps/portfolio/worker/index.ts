@@ -8,6 +8,17 @@ export interface Env {
 }
 
 export default {
+  // CRON Trigger for Automation (e.g., triggering n8n or Supabase syncs)
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    console.log(`Cron triggered at ${event.cron}`);
+    
+    // Example: Trigger the n8n webhook to start the data pipeline sync
+    // const n8nWebhookUrl = env.N8N_WEBHOOK_URL;
+    // if (n8nWebhookUrl) {
+    //   await fetch(n8nWebhookUrl, { method: 'POST', body: JSON.stringify({ source: 'cloudflare-cron', time: event.scheduledTime }) });
+    // }
+  },
+
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 

@@ -25,7 +25,9 @@ We have engineered custom local LLM setups optimized for an i9 desktop with an R
 
 ### 1. Expert Coding Agent (`qwen2.5-coder:32b`)
 
-Optimized for complex agentic workflows, n8n automations, React/Three.js generation, and secure Docker orchestration. Runs efficiently by offloading heavily to the GPU while utilizing system RAM for the larger context.
+Hyper-optimized for complex agentic workflows, strict tool-calling, n8n automations, React/Three.js generation, and secure Docker orchestration. 
+- **Hardware Profile:** Offloads heavily to the RTX 4080 GPU while utilizing the 64GB system RAM for a massive 32k context window.
+- **Enhancements:** Includes custom chat templates, stop tokens (e.g., `Observation:`), and strict temperature settings (0.1) for deterministic, precision tool-calling in the CLI.
 
 **To build and run:**
 ```bash
