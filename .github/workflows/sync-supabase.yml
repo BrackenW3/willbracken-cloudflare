@@ -1,0 +1,31 @@
+name: Sync GitHub to Supabase Code Galaxy
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run daily at midnight
+  workflow_dispatch: # Allow manual triggering from GitHub UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd apps/portfolio
+          npm install
+
+      - name: Run GitHub to Supabase Sync
+        run: |
+          cd apps/portfolio
+          npx tsx scripts/sync-github.ts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT_FOR_SYNC }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
