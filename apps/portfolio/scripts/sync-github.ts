@@ -38,7 +38,7 @@ async function syncRepositories() {
       const langs = await langResponse.json();
       
       // Calculate percentages
-      const totalBytes = Object.values(langs).reduce((a: any, b: any) => a + b, 0) as number;
+      const totalBytes = Object.values(langs).reduce((a: unknown, b: unknown) => (a as number) + (b as number), 0) as number;
       
       // Calculate visual size based on size + forks + stars
       const visualSize = Math.max(0.8, Math.min(2.5, 0.5 + Math.log10(repo.size || 10) * 0.2));

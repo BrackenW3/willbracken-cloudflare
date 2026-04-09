@@ -1,11 +1,11 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 export function Stars({ count = 5000 }) {
   const pointsRef = useRef<THREE.Points>(null);
 
-  const particlesPosition = useMemo(() => {
+  const [particlesPosition] = useState(() => {
     const positions = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
       // Spherical distribution
@@ -18,7 +18,7 @@ export function Stars({ count = 5000 }) {
       positions[i * 3 + 2] = r * Math.cos(phi);
     }
     return positions;
-  }, [count]);
+  });
 
   useFrame((state) => {
     if (pointsRef.current) {

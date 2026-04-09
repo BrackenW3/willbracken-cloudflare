@@ -26,8 +26,19 @@ const MOCK_GRAPH_DATA = {
   ]
 };
 
+interface GraphNode {
+  id: string;
+  group: number;
+  name: string;
+  val: number;
+  x?: number;
+  y?: number;
+  z?: number;
+}
+
 export function InternalAnalytics() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fgRef = useRef<any>(null);
 
   // In a real app, this would be tied to Supabase Auth or Cloudflare Access
@@ -98,7 +109,7 @@ export function InternalAnalytics() {
             ref={fgRef}
             graphData={MOCK_GRAPH_DATA}
             nodeLabel="name"
-            nodeColor={(node: any) => {
+            nodeColor={(node: GraphNode) => {
               if (node.group === 1) return '#ff6b00'; // Country
               if (node.group === 2) return '#3b82f6'; // Session
               return '#10b981'; // Page
@@ -107,11 +118,12 @@ export function InternalAnalytics() {
             linkColor={() => 'rgba(59, 130, 246, 0.4)'}
             linkWidth={1}
             backgroundColor="#0a0f1c"
-            onNodeClick={(node: any) => {
+            onNodeClick={(node: GraphNode) => {
               // Aim at node from outside it
               const distance = 40;
               const distRatio = 1 + distance/Math.hypot(node.x!, node.y!, node.z!);
-              fgRef.current.cameraPosition(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (fgRef.current as any).cameraPosition(
                 { x: node.x! * distRatio, y: node.y! * distRatio, z: node.z! * distRatio }, 
                 node, 
                 3000 

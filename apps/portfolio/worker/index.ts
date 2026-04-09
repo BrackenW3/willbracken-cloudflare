@@ -8,7 +8,7 @@ export interface Env {
 }
 
 export default {
-  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+  async scheduled(event: ScheduledEvent, env: Env): Promise<void> {
     console.log(`Cron triggered at ${event.cron}`);
     
     // Periodically we can aggregate D2 logs and batch insert them into Neo4j
@@ -35,7 +35,7 @@ export default {
     }
   },
 
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
     const corsHeaders = {
@@ -51,7 +51,7 @@ export default {
     // 1. ROBUST ANALYTICS ENGINE (D2 + Cloudflare Metadata)
     if (url.pathname === '/api/log') {
       try {
-        const body = await request.json() as any;
+        const body = await request.json() as Record<string, unknown>;
         
         // Cloudflare injects amazing geographic/network metadata into headers
         const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
@@ -59,9 +59,9 @@ export default {
         const city = request.headers.get('CF-IPCity') || 'unknown';
         const asOrganization = request.headers.get('CF-IPASNO') || 'unknown'; // ISP or Org
         const userAgent = request.headers.get('User-Agent') || 'unknown';
-        const referrer = request.headers.get('Referer') || body.referrer || 'direct';
-        const sessionId = body.sessionId || 'anonymous';
-        const duration = body.duration || 0;
+        const referrer = request.headers.get('Referer') || (body.referrer as string) || 'direct';
+        const sessionId = (body.sessionId as string) || 'anonymous';
+        const duration = (body.duration as number) || 0;
         
         // Ensure robust analytics table schema
         await env.DB_ANALYTICS.prepare(
@@ -90,8 +90,8 @@ export default {
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         ).bind(
           sessionId, 
-          body.event || 'pageview', 
-          body.path || url.pathname, 
+          (body.event as string) || 'pageview', 
+          (body.path as string) || url.pathname, 
           ip, 
           country, 
           city,
@@ -105,8 +105,8 @@ export default {
         return new Response(JSON.stringify({ success: true }), { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         });
-      } catch (e: any) {
-        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      } catch (e: unknown) {
+        return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500, headers: corsHeaders });
       }
     }
 
@@ -128,8 +128,8 @@ export default {
         return new Response(JSON.stringify({ projects: data }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
-      } catch (e: any) {
-        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+      } catch (e: unknown) {
+        return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500, headers: corsHeaders });
       }
     }
 

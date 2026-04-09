@@ -1,7 +1,22 @@
-import { useRef, useMemo, useState } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
+
+interface LangData {
+  c: string;
+  pct: number;
+}
+
+interface NodeData {
+  id: number;
+  position: THREE.Vector3;
+  name: string;
+  url: string;
+  size: number;
+  commits: number;
+  langs: LangData[];
+}
 
 // Language colors for rings
 const COLORS = {
@@ -45,22 +60,23 @@ function LanguageRings({ size, langs }: { size: number; langs: { c: string; pct:
     }
   });
 
-  let currentAngle = 0;
-  
+  // Pre-calculate cumulative angles
+  const ringSegments = useMemo(() => {
+    return langs.map((lang, index) => {
+      const thetaLength = lang.pct * Math.PI * 2;
+      const startAngle = langs.slice(0, index).reduce((acc, curr) => acc + (curr.pct * Math.PI * 2), 0);
+      return { ...lang, thetaLength, startAngle };
+    });
+  }, [langs]);
+
   return (
     <group ref={groupRef}>
-      {langs.map((lang, i) => {
-        const thetaLength = lang.pct * Math.PI * 2;
-        const startAngle = currentAngle;
-        currentAngle += thetaLength;
-        
-        return (
-          <mesh key={i} rotation={[Math.PI / 2, 0, startAngle]}>
-            <torusGeometry args={[size * 1.8, 0.05, 16, 64, thetaLength]} />
-            <meshBasicMaterial color={lang.c} transparent opacity={0.8} blending={THREE.AdditiveBlending} />
-          </mesh>
-        );
-      })}
+      {ringSegments.map((segment, i) => (
+        <mesh key={i} rotation={[Math.PI / 2, 0, segment.startAngle]}>
+          <torusGeometry args={[size * 1.8, 0.05, 16, 64, segment.thetaLength]} />
+          <meshBasicMaterial color={segment.c} transparent opacity={0.8} blending={THREE.AdditiveBlending} />
+        </mesh>
+      ))}
     </group>
   );
 }
@@ -68,6 +84,44 @@ function LanguageRings({ size, langs }: { size: number; langs: { c: string; pct:
 export function GalaxyNodes() {
   const groupRef = useRef<THREE.Group>(null);
   const [hoveredNode, setHoveredNode] = useState<number | null>(null);
+  const [nodesData, setNodesData] = useState(MOCK_NODES);
+
+  // Fetch real data from the Cloudflare Worker API
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch('/api/projects');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.projects && data.projects.length > 0) {
+            // Map Supabase data to the format expected by the visualizer
+            const mappedNodes = data.projects.map((repo: Record<string, unknown>, i: number) => {
+              // Extract primary language color or default
+              const langs = repo.languages as Array<Record<string, unknown>> | undefined;
+              const primaryColor = langs && langs[0] ? (langs[0].color as string) : '#3b82f6';
+              return {
+                id: (repo.id as number) || i,
+                position: new THREE.Vector3(
+                  (Math.random() - 0.5) * 35,
+                  (Math.random() - 0.5) * 25,
+                  (Math.random() - 0.5) * 35
+                ),
+                name: (repo.name as string),
+                url: (repo.url as string),
+                size: (repo.size as number) || 1.5,
+                commits: (repo.commits as number) || 0,
+                langs: (langs as unknown as LangData[]) || [{ c: primaryColor, pct: 1.0 }]
+              };
+            });
+            setNodesData(mappedNodes);
+          }
+        }
+      } catch (err) {
+        console.warn('Using fallback galaxy data. API not reachable:', err);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   useFrame((state) => {
     if (groupRef.current) {
@@ -76,14 +130,16 @@ export function GalaxyNodes() {
   });
 
   const handlePointerOver = (id: number) => {
-    document.body.style.cursor = 'pointer';
     setHoveredNode(id);
   };
 
   const handlePointerOut = () => {
-    document.body.style.cursor = 'auto';
     setHoveredNode(null);
   };
+
+  useEffect(() => {
+    document.body.style.cursor = hoveredNode !== null ? 'pointer' : 'auto';
+  }, [hoveredNode]);
 
   const handleClick = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -91,7 +147,7 @@ export function GalaxyNodes() {
 
   return (
     <group ref={groupRef}>
-      {MOCK_NODES.map((node) => {
+      {nodesData.map((node) => {
         const isHovered = hoveredNode === node.id;
         const primaryColor = node.langs[0].c;
         const scale = isHovered ? 1.2 : 1;
@@ -162,12 +218,12 @@ export function GalaxyNodes() {
       })}
 
       {/* Connection Lines (Simulated network) */}
-      <Connections nodes={MOCK_NODES} />
+      <Connections nodes={nodesData} />
     </group>
   );
 }
 
-function Connections({ nodes }: { nodes: typeof MOCK_NODES }) {
+function Connections({ nodes }: { nodes: NodeData[] }) {
   const lineGeometry = useMemo(() => {
     const points = [];
     for (let i = 0; i < nodes.length; i++) {

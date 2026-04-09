@@ -1,0 +1,57 @@
+version: '3.8'
+
+# Foundation Architecture for RTX 4080 / Windows / MacBook
+# This docker-compose spins up the local infrastructure needed to support
+# the AI Agents, Vector DB, and Automation (n8n).
+
+services:
+  # Local LLM Engine (Requires NVIDIA Container Toolkit on Linux/WSL for GPU support)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: foundation_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    # If using RTX 4080 via Docker, uncomment below:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # Workflow Automation (n8n)
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: foundation_n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=UTC
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - ollama
+
+  # Vector Database (Qdrant) for Email Processing & Memory
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: foundation_qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+volumes:
+  ollama_data:
+  n8n_data:
+  qdrant_data:
