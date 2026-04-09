@@ -23,6 +23,7 @@ export function CodeGalaxy() {
         <PostProcessing />
         <OrbitControls 
           enablePan={false}
+          enableZoom={true}
           maxDistance={60}
           minDistance={10}
           autoRotate
