@@ -11,7 +11,7 @@ export function Overlay() {
           </h1>
           <p className="text-cyber-blue-400 font-mono text-sm uppercase tracking-widest flex items-center gap-2">
             <Terminal size={16} />
-            System Architect & Elite Engineer
+            Data Scientist, Engineer, Developer, Architect
           </p>
         </div>
         
