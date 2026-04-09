@@ -1,20 +1,5 @@
 {
-  "name": "portfolio-api-worker",
-  "main": "worker/index.ts",
-  "compatibility_date": "2024-03-20",
-  "d2_databases": [
-    {
-      "binding": "DB_ANALYTICS",
-      "database_name": "portfolio-analytics",
-      "database_id": "WILL-BE-REPLACED-BY-CLOUDFLARE"
-    }
-  ],
-  "triggers": {
-    "crons": [
-      "0 * * * *" 
-    ]
-  },
-  "observability": {
-    "enabled": true
-  }
+  "name": "willbracken-cloudflare",
+  "pages_build_output_dir": "dist",
+  "compatibility_date": "2026-04-09"
 }
