@@ -1,19 +1,22 @@
 version: '3.8'
 
-# Foundation Architecture for RTX 4080 / Windows / MacBook
-# This docker-compose spins up the local infrastructure needed to support
-# the AI Agents, Vector DB, and Automation (n8n).
+# Foundation Architecture for Local AI Development
+# Designed to be portable across RTX 4080 Desktop, MacBook Pro M3, and Windows laptops.
+# This spins up the local infrastructure needed to support AI Agents and Vector DBs.
+# Note: n8n is hosted externally on Railway (n8n.willbracken.com) and communicates with these via Cloudflare Tunnels or Tailscale.
 
 services:
-  # Local LLM Engine (Requires NVIDIA Container Toolkit on Linux/WSL for GPU support)
+  # Local LLM Engine
+  # On Windows/Linux with RTX 4080: Uncomment the deploy section to enable GPU.
+  # On macOS (M3 Pro): Docker Desktop natively supports Metal acceleration for Ollama, no deploy block needed.
   ollama:
     image: ollama/ollama:latest
-    container_name: foundation_ollama
+    container_name: local_ollama
     ports:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    # If using RTX 4080 via Docker, uncomment below:
+    # --- UNCOMMENT FOR RTX 4080 / NVIDIA GPU ACCELERATION ---
     # deploy:
     #   resources:
     #     reservations:
@@ -22,29 +25,10 @@ services:
     #           count: 1
     #           capabilities: [gpu]
 
-  # Workflow Automation (n8n)
-  n8n:
-    image: docker.n8n.io/n8nio/n8n
-    container_name: foundation_n8n
-    ports:
-      - "5678:5678"
-    environment:
-      - N8N_HOST=localhost
-      - N8N_PORT=5678
-      - N8N_PROTOCOL=http
-      - NODE_ENV=production
-      - WEBHOOK_URL=http://localhost:5678/
-      - GENERIC_TIMEZONE=UTC
-      - OLLAMA_HOST=http://ollama:11434
-    volumes:
-      - n8n_data:/home/node/.n8n
-    depends_on:
-      - ollama
-
-  # Vector Database (Qdrant) for Email Processing & Memory
+  # Vector Database (Qdrant) for Email Processing, RAG, and AI Memory
   qdrant:
     image: qdrant/qdrant:latest
-    container_name: foundation_qdrant
+    container_name: local_qdrant
     ports:
       - "6333:6333"
       - "6334:6334"
@@ -53,5 +37,4 @@ services:
 
 volumes:
   ollama_data:
-  n8n_data:
   qdrant_data:
