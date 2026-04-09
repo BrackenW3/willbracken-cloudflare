@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Landing } from './pages/Landing';
 import { ProjectShowcase } from './pages/ProjectShowcase';
+import { InternalAnalytics } from './pages/InternalAnalytics';
 import { Navigation } from './components/UI/Navigation';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Landing />} />
           <Route path="/project/:projectId" element={<ProjectShowcase />} />
+          <Route path="/internal-analytics" element={<InternalAnalytics />} />
         </Routes>
       </AnimatePresence>
     </main>

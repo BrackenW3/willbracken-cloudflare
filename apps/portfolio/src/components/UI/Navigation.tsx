@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Terminal, Cpu, Database } from 'lucide-react';
+import { Home, Terminal, Cpu, Database, Network } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function Navigation() {
@@ -10,6 +10,7 @@ export function Navigation() {
     { path: '/project/ms-teams-export', label: 'Teams Export', icon: Terminal },
     { path: '/project/snowflake-streamlit', label: 'Snowflake AI', icon: Database },
     { path: '/project/ai-vision', label: 'AI Vision', icon: Cpu },
+    { path: '/internal-analytics', label: 'Internal DB', icon: Network },
   ];
 
   return (

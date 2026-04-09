@@ -1,61 +1,106 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Define the environment bindings for the worker
 export interface Env {
   DB_ANALYTICS: D2Database;
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
+  NEO4J_WEBHOOK_URL?: string; // Optional: Forward data to Neo4j via n8n or direct API
 }
 
 export default {
-  // CRON Trigger for Automation (e.g., triggering n8n or Supabase syncs)
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
     console.log(`Cron triggered at ${event.cron}`);
     
-    // Example: Trigger the n8n webhook to start the data pipeline sync
-    // const n8nWebhookUrl = env.N8N_WEBHOOK_URL;
-    // if (n8nWebhookUrl) {
-    //   await fetch(n8nWebhookUrl, { method: 'POST', body: JSON.stringify({ source: 'cloudflare-cron', time: event.scheduledTime }) });
-    // }
+    // Periodically we can aggregate D2 logs and batch insert them into Neo4j
+    // This is better than hitting Neo4j per-request to keep the Edge fast
+    if (env.NEO4J_WEBHOOK_URL) {
+      try {
+        const result = await env.DB_ANALYTICS.prepare(`SELECT * FROM page_views WHERE synced_to_graph = 0 LIMIT 100`).all();
+        if (result.results && result.results.length > 0) {
+          // Push to Neo4j ingestion pipeline (e.g. n8n webhook)
+          const resp = await fetch(env.NEO4J_WEBHOOK_URL, {
+            method: 'POST',
+            body: JSON.stringify({ batch: result.results }),
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (resp.ok) {
+            // Mark as synced
+            const ids = result.results.map(r => r.id).join(',');
+            await env.DB_ANALYTICS.prepare(`UPDATE page_views SET synced_to_graph = 1 WHERE id IN (${ids})`).run();
+          }
+        }
+      } catch (err) {
+        console.error("Failed to sync analytics to graph database:", err);
+      }
+    }
   },
 
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
-    // 1. Handle CORS
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     };
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // 2. Logging/Analytics into Cloudflare D2
+    // 1. ROBUST ANALYTICS ENGINE (D2 + Cloudflare Metadata)
     if (url.pathname === '/api/log') {
       try {
-        const body = await request.json() as { event: string; path: string };
-        const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-        const userAgent = request.headers.get('User-Agent') || 'unknown';
+        const body = await request.json() as any;
         
-        // Ensure table exists (in production, you'd run this via migrations)
+        // Cloudflare injects amazing geographic/network metadata into headers
+        const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+        const country = request.headers.get('CF-IPCountry') || 'unknown';
+        const city = request.headers.get('CF-IPCity') || 'unknown';
+        const asOrganization = request.headers.get('CF-IPASNO') || 'unknown'; // ISP or Org
+        const userAgent = request.headers.get('User-Agent') || 'unknown';
+        const referrer = request.headers.get('Referer') || body.referrer || 'direct';
+        const sessionId = body.sessionId || 'anonymous';
+        const duration = body.duration || 0;
+        
+        // Ensure robust analytics table schema
         await env.DB_ANALYTICS.prepare(
           `CREATE TABLE IF NOT EXISTS page_views (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            session_id TEXT,
             event TEXT, 
             path TEXT, 
             ip TEXT, 
+            country TEXT,
+            city TEXT,
+            asn_org TEXT,
             user_agent TEXT, 
+            referrer TEXT,
+            duration_ms INTEGER,
+            metadata TEXT,
+            synced_to_graph INTEGER DEFAULT 0,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
           )`
         ).run();
 
-        // Insert log
+        // Insert robust log
         await env.DB_ANALYTICS.prepare(
-          `INSERT INTO page_views (event, path, ip, user_agent) VALUES (?, ?, ?, ?)`
-        ).bind(body.event, body.path, ip, userAgent).run();
+          `INSERT INTO page_views 
+          (session_id, event, path, ip, country, city, asn_org, user_agent, referrer, duration_ms, metadata) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        ).bind(
+          sessionId, 
+          body.event || 'pageview', 
+          body.path || url.pathname, 
+          ip, 
+          country, 
+          city,
+          asOrganization,
+          userAgent, 
+          referrer, 
+          duration,
+          JSON.stringify(body.metadata || {})
+        ).run();
 
         return new Response(JSON.stringify({ success: true }), { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -65,14 +110,13 @@ export default {
       }
     }
 
-    // 3. Supabase Integration Example
+    // 2. Supabase Data Passthrough
     if (url.pathname === '/api/projects') {
       try {
         const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
           auth: { persistSession: false }
         });
 
-        // Pull top projects for the Code Galaxy from Supabase Postgres
         const { data, error } = await supabase
           .from('projects')
           .select('*')
