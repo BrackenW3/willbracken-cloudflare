@@ -1,5 +1,7 @@
-import { Globe, Terminal, Database, Code2 } from 'lucide-react';
+import { Database } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 const TIMELINE_DATA = [
   { month: 'Jan', commits: 150, volume: 1200 },
@@ -31,29 +33,43 @@ const LEGEND = [
 ];
 
 export function Overlay() {
+  const [statusLogs, setStatusLogs] = useState<string[]>(['INITIALIZING_GALAXY_OS...', 'LOADING_REPOSITORIES...']);
+
+  useEffect(() => {
+    const logs = [
+      'SCANNING_VSCODE_MONOREPO...',
+      'ESTABLISHING_RTX4080_TUNNEL...',
+      'SYNCING_SUPABASE_POSTGRES...',
+      'NEO4J_GRAPH_ONLINE',
+      'D2_ANALYTICS_CAPTURE_ACTIVE',
+      'CLOUDFLARE_EDGE_HEALTH_100%',
+      'QUERYING_GITHUB_API...',
+    ];
+    let i = 0;
+    const interval = setInterval(() => {
+      setStatusLogs(prev => [...prev.slice(-4), logs[i % logs.length]]);
+      i++;
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="absolute inset-0 w-full h-full z-10 pointer-events-none p-6 flex flex-col justify-between">
-      {/* Header */}
-      <header className="flex justify-between items-start">
-        <div className="pointer-events-auto">
-          <h1 className="text-4xl font-bold tracking-tighter text-glow-blue mb-1">
-            WILL_BRACKEN
-          </h1>
-          <p className="text-cyber-blue-400 font-mono text-xs uppercase tracking-widest flex items-center gap-2">
-            <Terminal size={14} />
-            Data Scientist, Engineer, Developer, Architect
-          </p>
+      {/* Top Left: Terminal Status */}
+      <div className="absolute top-6 left-6 pointer-events-none">
+        <div className="flex flex-col gap-1">
+          {statusLogs.map((log, idx) => (
+            <motion.div 
+              key={`${log}-${idx}`}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 0.6, x: 0 }}
+              className="text-[9px] font-mono text-cyber-blue-400 tracking-tighter"
+            >
+              <span className="text-cyber-orange mr-2">&gt;&gt;</span> {log}
+            </motion.div>
+          ))}
         </div>
-        
-        <nav className="flex gap-4 pointer-events-auto">
-          <button className="p-3 rounded-xl border border-cyber-blue-500/30 bg-cyber-blue-900/50 backdrop-blur-md hover:bg-cyber-blue-800/80 hover:border-cyber-blue-400 transition-all text-cyber-blue-400 hover:text-glow-blue box-glow-blue">
-            <Globe size={20} />
-          </button>
-          <button className="p-3 rounded-xl border border-cyber-orange/30 bg-cyber-blue-900/50 backdrop-blur-md hover:bg-cyber-orange/20 hover:border-cyber-orange transition-all text-cyber-orange hover:text-glow-orange box-glow-orange">
-            <Code2 size={20} />
-          </button>
-        </nav>
-      </header>
+      </div>
 
       <div className="flex flex-1 justify-between items-end pb-2 pt-4">
         {/* Left Side: Stats and Volume Chart */}

@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Globe, ExternalLink, Activity, Terminal as TerminalIcon, Cpu, Database } from 'lucide-react';
 import { PROJECTS_DATA } from '../data/projects';
+import { DigitalRain } from '../components/UI/DigitalRain';
 
 export function ProjectShowcase() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -15,18 +16,38 @@ export function ProjectShowcase() {
     );
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.6, ease: "easeOut" as const }
+    }
+  };
+
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5 }}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      exit={{ opacity: 0, y: -20, transition: { duration: 0.3 } }}
       className="w-full h-full pt-32 px-8 pb-8 overflow-y-auto"
     >
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* Left Column: Project Info */}
-        <div className="lg:col-span-4 flex flex-col gap-6">
+        <motion.div variants={itemVariants} className="lg:col-span-4 flex flex-col gap-6">
           <div className="border border-cyber-blue-500/30 bg-cyber-blue-900/60 backdrop-blur-xl p-8 rounded-2xl shadow-2xl relative overflow-hidden">
             {/* Glow Accent */}
             <div 
@@ -74,10 +95,10 @@ export function ProjectShowcase() {
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right Column: Interactive Demo/Showcase */}
-        <div className="lg:col-span-8">
+        <motion.div variants={itemVariants} className="lg:col-span-8">
           <div className="w-full h-full min-h-[600px] border border-cyber-blue-500/30 bg-cyber-blue-900/60 backdrop-blur-xl rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             {/* Fake Browser/Terminal Header */}
             <div className="h-10 bg-cyber-blue-800/80 border-b border-cyber-blue-500/30 flex items-center px-4 gap-2">
@@ -94,6 +115,7 @@ export function ProjectShowcase() {
 
             {/* Interactive Content Area */}
             <div className="flex-1 p-6 relative">
+              <DigitalRain />
               {project.demoType === 'terminal' && (
                 <div className="font-mono text-sm leading-relaxed">
                   <p className="text-emerald-400">$ python analyze_teams.py --input raw_export.json --output structured.csv</p>
@@ -126,7 +148,7 @@ export function ProjectShowcase() {
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
 
       </div>
     </motion.div>
