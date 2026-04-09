@@ -1,0 +1,15 @@
+{
+  "name": "portfolio-api-worker",
+  "main": "worker/index.ts",
+  "compatibility_date": "2024-03-20",
+  "d2_databases": [
+    {
+      "binding": "DB_ANALYTICS",
+      "database_name": "portfolio-analytics",
+      "database_id": "WILL-BE-REPLACED-BY-CLOUDFLARE"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
