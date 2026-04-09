@@ -42,54 +42,54 @@ export function ProjectShowcase() {
       initial="hidden"
       animate="visible"
       exit={{ opacity: 0, y: -20, transition: { duration: 0.3 } }}
-      className="w-full h-full pt-32 px-8 pb-8 overflow-y-auto"
+      className="w-full h-full pt-16 lg:pt-32 px-4 md:px-8 pb-8 overflow-y-auto bg-[#0a0f1c]"
     >
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* Left Column: Project Info */}
-        <motion.div variants={itemVariants} className="lg:col-span-4 flex flex-col gap-6">
-          <div className="border border-cyber-blue-500/30 bg-cyber-blue-900/60 backdrop-blur-xl p-8 rounded-2xl shadow-2xl relative overflow-hidden">
+        <motion.div variants={itemVariants} className="lg:col-span-4 flex flex-col gap-6 w-full overflow-hidden">
+          <div className="border border-slate-800 bg-slate-900/50 backdrop-blur-xl p-6 md:p-8 rounded-2xl shadow-2xl relative overflow-hidden">
             {/* Glow Accent */}
             <div 
               className="absolute top-0 left-0 w-full h-1"
               style={{ backgroundColor: project.primaryColor, boxShadow: `0 0 20px ${project.primaryColor}` }}
             />
             
-            <h1 className="text-3xl font-bold text-white mb-4" style={{ textShadow: `0 0 10px ${project.primaryColor}40` }}>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4 leading-tight" style={{ textShadow: `0 0 10px ${project.primaryColor}40` }}>
               {project.title}
             </h1>
             
-            <p className="text-slate-300 leading-relaxed text-sm mb-6">
+            <p className="text-slate-400 leading-relaxed text-sm mb-6 break-words">
               {project.description}
             </p>
 
             <div className="flex flex-wrap gap-2 mb-8">
               {project.tags.map(tag => (
-                <span key={tag} className="px-3 py-1 text-[10px] font-mono rounded-full border border-cyber-blue-500/30 text-cyber-blue-400 bg-cyber-blue-800/50">
+                <span key={tag} className="px-2 py-1 text-[9px] font-mono rounded-md border border-slate-700 text-slate-300 bg-slate-800">
                   {tag}
                 </span>
               ))}
             </div>
 
-            <h3 className="text-xs font-bold text-white font-mono tracking-wider mb-4 border-b border-cyber-blue-500/30 pb-2">KEY_FEATURES</h3>
-            <ul className="flex flex-col gap-3 mb-8">
+            <h3 className="text-[10px] font-bold text-white font-mono tracking-widest mb-4 border-b border-slate-800 pb-2 uppercase">Key Features</h3>
+            <ul className="flex flex-col gap-3 mb-8 list-none p-0">
               {project.features.map((feature, i) => (
-                <li key={i} className="text-xs text-slate-300 flex items-start gap-2">
+                <li key={i} className="text-xs text-slate-400 flex items-start gap-2 leading-snug">
                   <Activity size={14} className="mt-0.5 shrink-0" style={{ color: project.primaryColor }} />
                   <span>{feature}</span>
                 </li>
               ))}
             </ul>
 
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-3">
               <button 
                 onClick={() => window.open(project.githubUrl, '_blank')}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white text-cyber-blue-900 hover:bg-slate-200 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white text-black hover:bg-slate-200 transition-colors"
               >
                 <Globe size={16} />
                 SOURCE
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-cyber-blue-500/30 text-cyber-blue-400 hover:text-white hover:bg-cyber-blue-500/20 transition-all text-xs font-bold">
+              <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 transition-all text-xs font-bold">
                 <ExternalLink size={16} />
                 DEPLOY
               </button>
@@ -98,7 +98,7 @@ export function ProjectShowcase() {
         </motion.div>
 
         {/* Right Column: Interactive Demo/Showcase */}
-        <motion.div variants={itemVariants} className="lg:col-span-8">
+        <motion.div variants={itemVariants} className="lg:col-span-8 w-full overflow-hidden">
           <div className="w-full h-full min-h-[600px] border border-cyber-blue-500/30 bg-cyber-blue-900/60 backdrop-blur-xl rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             {/* Fake Browser/Terminal Header */}
             <div className="h-10 bg-cyber-blue-800/80 border-b border-cyber-blue-500/30 flex items-center px-4 gap-2">

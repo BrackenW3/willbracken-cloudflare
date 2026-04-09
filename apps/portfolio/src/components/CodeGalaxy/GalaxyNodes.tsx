@@ -1,250 +1,174 @@
-import { useRef, useMemo, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
+import { Text, Float, Line } from '@react-three/drei';
 import * as THREE from 'three';
 
-interface LangData {
-  c: string;
-  pct: number;
-}
-
-interface NodeData {
-  id: number;
-  position: THREE.Vector3;
-  name: string;
-  url: string;
-  size: number;
-  commits: number;
-  langs: LangData[];
-}
-
-// Language colors for rings
-const COLORS = {
-  ts: '#3b82f6', // Cyber Blue
-  python: '#10b981', // Emerald
-  rust: '#ff6b00', // Cyber Orange
-  go: '#06b6d4', // Cyan
+const LANG_COLORS: Record<string, string> = {
+  Go: '#00ADD8', Python: '#3776AB', JavaScript: '#F7DF1E', TypeScript: '#3178C6',
+  HTML: '#E34F26', CSS: '#1572B6', Shell: '#4EAA25', Dockerfile: '#2496ED', default: '#8892a4'
 };
 
-const REPOS = [
-  { name: 'VSCode_Folders', url: 'https://github.com/brackenw3/VSCode_Folders', langs: [{ c: COLORS.ts, pct: 0.6 }, { c: COLORS.python, pct: 0.4 }], size: 1.8, commits: 12400 },
-  { name: 'n8n-automations', url: 'https://github.com/brackenw3/n8n-automations', langs: [{ c: COLORS.ts, pct: 1.0 }], size: 1.5, commits: 3200 },
-  { name: 'cloud-infra-d2', url: 'https://github.com/brackenw3/cloud-infra', langs: [{ c: COLORS.rust, pct: 0.7 }, { c: COLORS.ts, pct: 0.3 }], size: 1.2, commits: 1500 },
-  { name: 'ai-vision-agent', url: 'https://github.com/brackenw3/ai-vision', langs: [{ c: COLORS.python, pct: 0.8 }, { c: COLORS.go, pct: 0.2 }], size: 1.4, commits: 2100 },
-  { name: 'CodeGalaxy', url: 'https://github.com/brackenw3/willbracken-cloudflare', langs: [{ c: COLORS.ts, pct: 1.0 }], size: 1.6, commits: 450 },
-  { name: 'portfolio-v1', url: 'https://github.com/brackenw3/portfolio-v1', langs: [{ c: COLORS.ts, pct: 0.9 }, { c: COLORS.python, pct: 0.1 }], size: 1.0, commits: 800 },
-  { name: 'data-pipeline', url: 'https://github.com/brackenw3/data-pipeline', langs: [{ c: COLORS.python, pct: 0.7 }, { c: COLORS.rust, pct: 0.3 }], size: 1.3, commits: 1800 },
-  { name: 'llm-finetuning', url: 'https://github.com/brackenw3/llm-finetuning', langs: [{ c: COLORS.python, pct: 1.0 }], size: 1.5, commits: 2400 },
-  { name: 'discord-bot-rs', url: 'https://github.com/brackenw3/discord-bot', langs: [{ c: COLORS.rust, pct: 1.0 }], size: 0.9, commits: 340 },
-  { name: 'trading-algo', url: 'https://github.com/brackenw3/trading-algo', langs: [{ c: COLORS.go, pct: 0.6 }, { c: COLORS.python, pct: 0.4 }], size: 1.1, commits: 950 },
-];
+interface Repo {
+  name: string;
+  description: string;
+  language: string;
+  stargazers_count: number;
+  forks_count: number;
+  html_url: string;
+}
 
-// Distribute them in 3D space
-const MOCK_NODES = REPOS.map((repo, i) => ({
-  id: i,
-  position: new THREE.Vector3(
-    (Math.random() - 0.5) * 35,
-    (Math.random() - 0.5) * 25,
-    (Math.random() - 0.5) * 35
-  ),
-  ...repo
-}));
-
-function LanguageRings({ size, langs }: { size: number; langs: { c: string; pct: number }[] }) {
+export function GalaxyNodes() {
+  const [repos, setRepos] = useState<Repo[]>([]);
+  const [hovered, setHovered] = useState<string | null>(null);
   const groupRef = useRef<THREE.Group>(null);
-  
-  useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.x = state.clock.elapsedTime * 0.5;
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.3;
-    }
-  });
 
-  // Pre-calculate cumulative angles
-  const ringSegments = useMemo(() => {
-    return langs.map((lang, index) => {
-      const thetaLength = lang.pct * Math.PI * 2;
-      const startAngle = langs.slice(0, index).reduce((acc, curr) => acc + (curr.pct * Math.PI * 2), 0);
-      return { ...lang, thetaLength, startAngle };
-    });
-  }, [langs]);
+  useEffect(() => {
+    // Fetch real repos or fallback
+    const load = async () => {
+      try {
+        const res = await fetch('https://api.github.com/users/brackenw3/repos?per_page=100&sort=stars');
+        if (res.ok) {
+          const data = await res.json();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setRepos(data.filter((r: any) => !r.fork && !r.private).slice(0, 15));
+        } else {
+          throw new Error();
+        }
+      } catch {
+        setRepos([
+          { name: 'VSCode_Folders', description: 'Main monorepo', language: 'TypeScript', stargazers_count: 5, forks_count: 2, html_url: 'https://github.com/brackenw3/VSCode_Folders' },
+          { name: 'brackenw3.github.io', description: 'Portfolio site', language: 'JavaScript', stargazers_count: 12, forks_count: 4, html_url: 'https://github.com/brackenw3/brackenw3.github.io' },
+          { name: 'Go-Scripts', description: 'Go tooling', language: 'Go', stargazers_count: 8, forks_count: 1, html_url: 'https://github.com/brackenw3/Go-Scripts' },
+          { name: 'GH_Models', description: 'AI gateway', language: 'Python', stargazers_count: 20, forks_count: 5, html_url: 'https://github.com/brackenw3/GH_Models' },
+        ]);
+      }
+    };
+    load();
+  }, []);
 
   return (
     <group ref={groupRef}>
-      {ringSegments.map((segment, i) => (
-        <mesh key={i} rotation={[Math.PI / 2, 0, segment.startAngle]}>
-          <torusGeometry args={[size * 1.8, 0.05, 16, 64, segment.thetaLength]} />
-          <meshBasicMaterial color={segment.c} transparent opacity={0.8} blending={THREE.AdditiveBlending} />
-        </mesh>
+      <CentralCore />
+      {repos.map((repo, idx) => (
+        <OrbitingRepo 
+          key={repo.name} 
+          repo={repo} 
+          index={idx} 
+          isHovered={hovered === repo.name}
+          onHover={() => setHovered(repo.name)}
+          onUnhover={() => setHovered(null)}
+        />
       ))}
     </group>
   );
 }
 
-export function GalaxyNodes() {
-  const groupRef = useRef<THREE.Group>(null);
-  const [hoveredNode, setHoveredNode] = useState<number | null>(null);
-  const [nodesData, setNodesData] = useState(MOCK_NODES);
-
-  // Fetch real data from the Cloudflare Worker API
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const response = await fetch('/api/projects');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.projects && data.projects.length > 0) {
-            // Map Supabase data to the format expected by the visualizer
-            const mappedNodes = data.projects.map((repo: Record<string, unknown>, i: number) => {
-              // Extract primary language color or default
-              const langs = repo.languages as Array<Record<string, unknown>> | undefined;
-              const primaryColor = langs && langs[0] ? (langs[0].color as string) : '#3b82f6';
-              return {
-                id: (repo.id as number) || i,
-                position: new THREE.Vector3(
-                  (Math.random() - 0.5) * 35,
-                  (Math.random() - 0.5) * 25,
-                  (Math.random() - 0.5) * 35
-                ),
-                name: (repo.name as string),
-                url: (repo.url as string),
-                size: (repo.size as number) || 1.5,
-                commits: (repo.commits as number) || 0,
-                langs: (langs as unknown as LangData[]) || [{ c: primaryColor, pct: 1.0 }]
-              };
-            });
-            setNodesData(mappedNodes);
-          }
-        }
-      } catch (err) {
-        console.warn('Using fallback galaxy data. API not reachable:', err);
-      }
-    };
-    fetchProjects();
-  }, []);
-
+function CentralCore() {
+  const meshRef = useRef<THREE.Mesh>(null);
+  
   useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.01;
+    if (meshRef.current) {
+      const s = 1 + Math.sin(state.clock.elapsedTime * 1.8) * 0.05;
+      meshRef.current.scale.setScalar(s);
     }
   });
 
-  const handlePointerOver = (id: number) => {
-    setHoveredNode(id);
-  };
-
-  const handlePointerOut = () => {
-    setHoveredNode(null);
-  };
-
-  useEffect(() => {
-    document.body.style.cursor = hoveredNode !== null ? 'pointer' : 'auto';
-  }, [hoveredNode]);
-
-  const handleClick = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
   return (
-    <group ref={groupRef}>
-      {nodesData.map((node) => {
-        const isHovered = hoveredNode === node.id;
-        const primaryColor = node.langs[0].c;
-        const scale = isHovered ? 1.2 : 1;
-
-        return (
-          <group 
-            key={node.id} 
-            position={node.position}
-            scale={[scale, scale, scale]}
-            onPointerOver={() => handlePointerOver(node.id)}
-            onPointerOut={handlePointerOut}
-            onClick={() => handleClick(node.url)}
-          >
-            {/* Node Core */}
-            <mesh>
-              <sphereGeometry args={[node.size, 32, 32]} />
-              <meshStandardMaterial 
-                color={primaryColor} 
-                emissive={primaryColor}
-                emissiveIntensity={isHovered ? 4 : 2}
-                toneMapped={false}
-              />
-            </mesh>
-            
-            {/* Node Halo/Glow */}
-            <mesh>
-              <sphereGeometry args={[node.size * 1.4, 32, 32]} />
-              <meshBasicMaterial 
-                color={primaryColor}
-                transparent
-                opacity={isHovered ? 0.3 : 0.15}
-                blending={THREE.AdditiveBlending}
-                depthWrite={false}
-              />
-            </mesh>
-
-            {/* Language Percentage Rings */}
-            <LanguageRings size={node.size} langs={node.langs} />
-
-            {/* Label */}
-            <Text
-              position={[0, node.size * 2 + 0.5, 0]}
-              fontSize={0.8}
-              color={isHovered ? "#ffffff" : "#e2e8f0"}
-              anchorX="center"
-              anchorY="middle"
-              outlineWidth={0.05}
-              outlineColor="#0a0f1c"
-            >
-              {node.name}
-            </Text>
-            
-            {isHovered && (
-               <Text
-               position={[0, node.size * 2 - 0.3, 0]}
-               fontSize={0.4}
-               color="#ff6b00"
-               anchorX="center"
-               anchorY="middle"
-               outlineWidth={0.03}
-               outlineColor="#0a0f1c"
-             >
-               {node.commits.toLocaleString()} commits
-             </Text>
-            )}
-          </group>
-        );
-      })}
-
-      {/* Connection Lines (Simulated network) */}
-      <Connections nodes={nodesData} />
+    <group>
+      <mesh ref={meshRef}>
+        <sphereGeometry args={[2.5, 32, 32]} />
+        <meshStandardMaterial 
+          color="#00d4ff" 
+          emissive="#00d4ff" 
+          emissiveIntensity={2} 
+          toneMapped={false}
+        />
+      </mesh>
+      <Text
+        position={[0, 0, 3]}
+        fontSize={1}
+        color="white"
+        font="/fonts/JetBrainsMono.ttf" // Fallback to system if not found
+      >
+        WB
+      </Text>
+      {/* Outer Glow Ring */}
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[3.2, 3.8, 64]} />
+        <meshBasicMaterial color="#00d4ff" transparent opacity={0.3} side={THREE.DoubleSide} />
+      </mesh>
     </group>
   );
 }
 
-function Connections({ nodes }: { nodes: NodeData[] }) {
-  const lineGeometry = useMemo(() => {
-    const points = [];
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        if (nodes[i].position.distanceTo(nodes[j].position) < 20) {
-          points.push(nodes[i].position);
-          points.push(nodes[j].position);
-        }
-      }
+function OrbitingRepo({ repo, index, isHovered, onHover, onUnhover }: { repo: Repo, index: number, isHovered: boolean, onHover: () => void, onUnhover: () => void }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const radius = 12 + index * 4;
+  const speed = 0.05 + Math.random() * 0.1;
+  const initialAngle = index * (Math.PI * 2 / 10);
+  
+  const color = LANG_COLORS[repo.language] || LANG_COLORS.default;
+
+  useFrame((state) => {
+    if (groupRef.current && !isHovered) {
+      const angle = initialAngle + state.clock.elapsedTime * speed * 0.2;
+      groupRef.current.position.x = Math.cos(angle) * radius;
+      groupRef.current.position.z = Math.sin(angle) * radius;
+      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5 + index) * 1.5;
     }
-    return new THREE.BufferGeometry().setFromPoints(points);
-  }, [nodes]);
+  });
 
   return (
-    <lineSegments geometry={lineGeometry}>
-      <lineBasicMaterial 
-        color="#1f3b73" 
-        transparent 
-        opacity={0.2} 
-        blending={THREE.AdditiveBlending} 
-      />
-    </lineSegments>
+    <group>
+      {/* Orbit Line */}
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[radius - 0.05, radius + 0.05, 128]} />
+        <meshBasicMaterial color="#00d4ff" transparent opacity={0.05} side={THREE.DoubleSide} />
+      </mesh>
+
+      <group 
+        ref={groupRef}
+        onPointerOver={(e) => { e.stopPropagation(); onHover(); document.body.style.cursor = 'pointer'; }}
+        onPointerOut={() => { onUnhover(); document.body.style.cursor = 'auto'; }}
+        onClick={() => window.open(repo.html_url, '_blank')}
+      >
+        <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+          <mesh>
+            <sphereGeometry args={[0.8, 16, 16]} />
+            <meshStandardMaterial 
+              color={color} 
+              emissive={color} 
+              emissiveIntensity={isHovered ? 4 : 1}
+              toneMapped={false} 
+            />
+          </mesh>
+          
+          <mesh>
+            <sphereGeometry args={[1.2, 16, 16]} />
+            <meshBasicMaterial color={color} transparent opacity={0.1} />
+          </mesh>
+
+          {isHovered && (
+            <group position={[0, 1.5, 0]}>
+              <Text fontSize={0.6} color="white" anchorX="center" outlineWidth={0.05} outlineColor="black">
+                {repo.name}
+              </Text>
+              <Text position={[0, -0.6, 0]} fontSize={0.3} color="#7a8ba0" anchorX="center">
+                {repo.language}
+              </Text>
+            </group>
+          )}
+        </Float>
+
+        {/* Connection Line to Core */}
+        <Line 
+          points={[[0, 0, 0], [0, 0, 0]]} // Logic handled by frame or static if needed
+          color={color}
+          lineWidth={0.5}
+          transparent
+          opacity={0.1}
+        />
+      </group>
+    </group>
   );
 }

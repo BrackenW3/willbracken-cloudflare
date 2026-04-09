@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
-import { DigitalRain } from '../components/UI/DigitalRain';
-import { Code2, Database, Cpu, ArrowRight } from 'lucide-react';
+import { Code2, Database, ArrowRight, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function Landing() {
@@ -13,7 +12,7 @@ export function Landing() {
   };
 
   const itemVariants = {
-    hidden: { y: 30, opacity: 0 },
+    hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
@@ -27,50 +26,50 @@ export function Landing() {
       animate="visible"
       exit={{ opacity: 0 }}
       variants={containerVariants}
-      className="relative w-full h-full p-12 lg:p-24 overflow-y-auto"
+      className="relative w-full h-full bg-[#0a0f1c] flex flex-col items-center justify-center p-8 overflow-y-auto"
     >
-      <DigitalRain />
-      
-      <div className="relative z-10 max-w-6xl mx-auto flex flex-col justify-center min-h-full">
-        <motion.div variants={itemVariants} className="mb-16">
-          <h1 className="text-6xl lg:text-8xl font-bold text-white tracking-tighter mb-6 text-glow-blue">
-            BUILDING THE <span className="text-cyber-orange text-glow-orange">FUTURE.</span>
+      {/* Subtle Grid Background */}
+      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20" />
+
+      <div className="relative z-10 max-w-5xl w-full">
+        <motion.div variants={itemVariants} className="text-center mb-16">
+          <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight mb-6">
+            WILL BRACKEN
           </h1>
-          <p className="text-xl text-cyber-blue-400 font-mono max-w-3xl leading-relaxed">
-            Welcome to the central portfolio. This platform showcases cutting-edge data science, AI vision architectures, robust cloud infrastructure, and interactive 3D visualizations of my entire codebase.
+          <div className="h-1 w-24 bg-cyber-orange mx-auto mb-8 shadow-[0_0_10px_#ff6b00]" />
+          <p className="text-lg md:text-xl text-slate-400 font-mono max-w-2xl mx-auto leading-relaxed">
+            SYSTEM ARCHITECT &amp; DATA SCIENTIST
           </p>
         </motion.div>
-        
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Link to="/github" className="group relative border border-cyber-blue-500/30 bg-cyber-blue-900/60 p-8 rounded-2xl backdrop-blur-md hover:border-cyber-blue-400 transition-all duration-500 hover:box-glow-blue overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-cyber-blue-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <Code2 size={48} className="text-cyber-blue-400 mb-8 group-hover:text-white transition-colors duration-300" />
-            <h2 className="text-2xl font-bold text-white mb-3">The Code Galaxy</h2>
-            <p className="text-sm text-slate-400 mb-8">An interactive 3D visualization of the VSCode_Folders monorepo and live GitHub activity.</p>
-            <div className="flex items-center gap-2 text-cyber-blue-400 font-mono text-xs font-bold group-hover:translate-x-2 transition-transform">
-              EXPLORE REPOS <ArrowRight size={14} />
+
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Link to="/github" className="group p-8 rounded-2xl border border-slate-800 bg-slate-900/50 hover:bg-slate-900 hover:border-cyber-blue-400 transition-all duration-300">
+            <Code2 size={32} className="text-cyber-blue-400 mb-6 group-hover:scale-110 transition-transform" />
+            <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-glow-blue transition-all">GitHub Galaxy</h2>
+            <p className="text-slate-400 text-sm leading-relaxed mb-6">
+              Interactive 3D visualization of my entire codebase and project distributions.
+            </p>
+            <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-cyber-blue-400">
+              EXPLORE_GALAXY <ArrowRight size={14} />
             </div>
           </Link>
 
-          <Link to="/project/snowflake-streamlit" className="group relative border border-cyber-blue-500/30 bg-cyber-blue-900/60 p-8 rounded-2xl backdrop-blur-md hover:border-cyber-orange transition-all duration-500 hover:box-glow-orange overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-cyber-orange/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <Database size={48} className="text-cyber-orange mb-8 group-hover:text-white transition-colors duration-300" />
-            <h2 className="text-2xl font-bold text-white mb-3">Data Engineering</h2>
-            <p className="text-sm text-slate-400 mb-8">Zero-movement data architectures, Snowflake Streamlit apps, and high-performance pipelines.</p>
-            <div className="flex items-center gap-2 text-cyber-orange font-mono text-xs font-bold group-hover:translate-x-2 transition-transform">
-              VIEW PROJECTS <ArrowRight size={14} />
+          <Link to="/project/ms-teams-export" className="group p-8 rounded-2xl border border-slate-800 bg-slate-900/50 hover:bg-slate-900 hover:border-cyber-orange transition-all duration-300">
+            <Database size={32} className="text-cyber-orange mb-6 group-hover:scale-110 transition-transform" />
+            <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-glow-orange transition-all">Featured Work</h2>
+            <p className="text-slate-400 text-sm leading-relaxed mb-6">
+              Deep dives into AI vision pipelines, data engineering, and system scripts.
+            </p>
+            <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-cyber-orange">
+              VIEW_PROJECTS <ArrowRight size={14} />
             </div>
           </Link>
+        </motion.div>
 
-          <Link to="/project/ai-vision" className="group relative border border-cyber-blue-500/30 bg-cyber-blue-900/60 p-8 rounded-2xl backdrop-blur-md hover:border-emerald-400 transition-all duration-500 shadow-[0_0_20px_rgba(16,185,129,0)_inset] hover:shadow-[0_0_20px_rgba(16,185,129,0.15)_inset] overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-emerald-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <Cpu size={48} className="text-emerald-400 mb-8 group-hover:text-white transition-colors duration-300" />
-            <h2 className="text-2xl font-bold text-white mb-3">AI & Vision</h2>
-            <p className="text-sm text-slate-400 mb-8">Local LLM orchestration, multi-modal vision parsing, and RTX 4080 compute bridging.</p>
-            <div className="flex items-center gap-2 text-emerald-400 font-mono text-xs font-bold group-hover:translate-x-2 transition-transform">
-              VIEW ARCHITECTURE <ArrowRight size={14} />
-            </div>
-          </Link>
+        <motion.div variants={itemVariants} className="mt-12 flex justify-center gap-6">
+          <a href="https://github.com/brackenw3" target="_blank" rel="noreferrer" className="text-slate-500 hover:text-white transition-colors">
+            <ExternalLink size={24} />
+          </a>
         </motion.div>
       </div>
     </motion.div>
