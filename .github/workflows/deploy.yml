@@ -1,20 +1,45 @@
-name: Deploy Masterpiece
-on: [push]
+name: Deploy Cloudflare Apps
+on:
+  push:
+    branches:
+      - main
 
 jobs:
-  deploy:
+  deploy-portfolio:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Install & Build
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Build Portfolio
         run: |
           cd apps/portfolio
           npm install
           npm run build
-      - name: Publish to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+          
+      - name: Deploy Portfolio to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: willbracken-cloudflare
-          directory: apps/portfolio/dist
+          workingDirectory: 'apps/portfolio'
+          command: pages deploy dist --project-name=willbracken-cloudflare
+
+  deploy-security-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Deploy Security Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: 'apps/security-worker'
+          command: deploy
