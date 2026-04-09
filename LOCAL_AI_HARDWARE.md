@@ -26,7 +26,9 @@ PARAMETER temperature 0.1
 
 ## 2. Apple Silicon (MacBook Pro M3 Pro, 18GB Unified Memory)
 
-Apple's Unified Memory architecture is incredible because the GPU and CPU share the same pool. However, with 18GB total, we must leave ~4-6GB for macOS and background apps. Our absolute hard limit for LLM memory footprint is ~12GB.
+Apple's Unified Memory architecture is incredible because the GPU and CPU share the same pool. However, with 18GB total, we must leave ~4-6GB for macOS and background apps. Our absolute hard limit for LLM memory footprint is ~12GB. 
+
+**Storage Note:** To save space on the internal drive, configure Ollama to store its model weights (`.ollama/models`) on your fast external Thunderbolt/USB4 SSD. 
 
 ### Recommended Models
 * **Expert Coder:** `qwen2.5-coder:14b` (or `deepseek-coder-v2:16b-lite`)
@@ -65,16 +67,12 @@ PARAMETER temperature 0.1
 
 ---
 
-## Connecting Railway n8n to Local AI
+## The "Plug-and-Play" Cloud-to-Local Bridge
 
-Since your n8n instance is hosted in the cloud (`n8n.willbracken.com`), it cannot reach `localhost:11434` directly. 
+Because your n8n instance is already hosted in the cloud (`n8n.willbracken.com`), it handles all the lightweight orchestration, webhooks, API connections, and scheduling. It delegates the heavy compute (LLM inference, Vision processing) down to your local hardware.
 
-**The Solution: Cloudflare Tunnels**
-1. Install `cloudflared` on whichever local machine you are currently using.
-2. Run a tunnel exposing port `11434`:
-   ```bash
-   cloudflared tunnel --url http://localhost:11434
-   ```
-3. Update your n8n Ollama Node credentials to point to the secure Cloudflare Tunnel URL (e.g., `https://ai-node.willbracken.com`). 
-
-When you switch from your Desktop to your MacBook, simply spin up the Docker container (`docker-compose up -d`) and start the tunnel. Your cloud n8n instance will instantly connect to whichever local machine you are actively using!
+**How it works seamlessly:**
+1. Your cloud n8n is permanently configured to point its Ollama/AI nodes to your specific Cloudflare Tunnel URL.
+2. The model weights live entirely on the local drives (Desktop NVMe or MacBook external SSD) avoiding massive cloud storage costs.
+3. When you switch machines, you simply plug in your drive (if on Mac), ensure Ollama is running, and spin up the Cloudflare Tunnel daemon.
+4. **Zero Configuration Change Required:** n8n sends a prompt down the tunnel, your local machine crunches the numbers on the GPU, and sends the payload back to the cloud. What can be run in the cloud stays in the cloud; what requires heavy local resources runs locally.
