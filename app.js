@@ -3,7 +3,7 @@ const msalConfig = {
     auth: {
         clientId: "b07e9b3b-01b2-4fcf-b643-586ccea97bbc", // From Azure App Overview
         authority: "https://login.microsoftonline.com/99150341-b2dc-4715-bab9-3b1cd11b5411",
-        redirectUri: "http://localhost:3000", // Must match exactly what is in Azure
+        redirectUri: "https://auth.willbracken.com", // Updated for production on Cloudflare
     },
     cache: {
         cacheLocation: "sessionStorage", // Stores tokens securely in the browser session
