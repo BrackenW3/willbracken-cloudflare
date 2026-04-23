@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will Bracken Azure Site | Authentication</title>
+
+    <script type="text/javascript" src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+
+    <style>
+        /* Modern CSS Reset & Box Sizing */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            /* Layered Dark Blue Gradient for a premium, textured look without animation */
+            background: radial-gradient(circle at 10% 20%, #002b5e 0%, #00122e 40%, #00050d 100%);
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Sleek, glass-like container */
+        .login-card {
+            background: rgba(16, 33, 62, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 2px solid #00a4ef; /* Azure Light Blue Highlight */
+            border-radius: 12px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo-container {
+            margin-bottom: 25px;
+        }
+
+        /* Inline SVG for the Azure Logo */
+        .azure-logo {
+            width: 60px;
+            height: auto;
+        }
+
+        h1 {
+            font-size: 1.6em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+        h2 {
+            font-size: 0.85em;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #ff9933; /* Orange Highlight */
+            margin-bottom: 40px;
+        }
+
+        /* Wide, centered button */
+        .login-button {
+            width: 100%;
+            padding: 16px;
+            background-color: #00a4ef; /* Light Blue */
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 164, 239, 0.2);
+        }
+
+        /* Hover effect utilizes the orange */
+        .login-button:hover {
+            background-color: #ff9933;
+            box-shadow: 0 6px 20px rgba(255, 153, 51, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .login-button:active {
+            transform: translateY(1px);
+        }
+
+        /* Utility classes for the app.js logic */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Authenticated State Styling */
+        #profileArea {
+            margin-top: 20px;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        #profileArea h3 {
+            color: #00a4ef;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        #profileArea p {
+            font-size: 0.9em;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .secondary-button {
+            background: transparent;
+            border: 1px solid #ff9933;
+            color: #ff9933;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9em;
+            margin-right: 10px;
+        }
+
+        .secondary-button:hover {
+            background: rgba(255, 153, 51, 0.1);
+        }
+
+        pre {
+            background: #000;
+            color: #00ff00; /* Fun terminal green for the raw JSON */
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-top: 15px;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="logo-container">
+            <svg class="azure-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.4 2.4L0 19.5H6.6L11.4 12V2.4Z" fill="#00A4EF"/>
+                <path d="M12.6 2.4V12.1L18.4 20H24L12.6 2.4Z" fill="#00A4EF"/>
+                <path d="M6.6 19.5L11.4 12L12.6 14.2L8.5 20H18.4L16.2 16.5H12.6L14.6 20H18.4L20.8 16.5H6.6V19.5Z" fill="#0078D7"/>
+            </svg>
+        </div>
+
+        <h1>Will Bracken Azure Site</h1>
+        <h2>Authentication</h2>
+
+        <button id="loginButton" class="login-button">Login with Microsoft</button>
+
+        <div id="profileArea" class="hidden">
+            <h3>Welcome, <span id="userName"></span>!</h3>
+            <p><span id="userEmail"></span></p>
+
+            <div>
+                <button id="callGraphButton" class="secondary-button">Fetch Graph Data</button>
+                <button id="logoutButton" class="secondary-button" style="border-color: #555; color: #aaa;">Logout</button>
+            </div>
+
+            <pre id="graphResponse"></pre>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
